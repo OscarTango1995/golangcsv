@@ -8,10 +8,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-
-	//"io"
-	//"log"
-	//"os"
 )
 const (
 	username = "root"
