@@ -28,7 +28,7 @@ func main() {
 	readFile := csv.NewReader(csvfile)
 
 	//SQL Query
-	stmt, err := db.Prepare("insert into persons values (?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO persons VALUES (?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?,?, ?, ?)")
 	ErrorCheck(err,"No Errors in SQL Statement")
 
 	i:=0
@@ -43,36 +43,33 @@ func main() {
 		}
 		if err != nil {
 			//notify if any error comes during the process
-			ErrorCheck(err,"Unexpected error occured!")
+			ErrorCheck(err,"Unexpected error occurred!")
+			break
 		}
-		if i!=0 {
+		if i!=0 { //skipping the header
 			age,_ :=strconv.Atoi(record[5])
-			//ErrorCheck(err,"Age converted to INT")
 			emp,_ := strconv.ParseBool(record[17])
-			//ErrorCheck(err,"Employment converted to Bool")
 			_,err =stmt.Exec(0,record[0], record[1],record[2], record[3],record[4], age,record[6], record[7],record[8], record[9],record[10], record[11],record[12], record[13],record[14], record[15],record[16], emp,record[18], record[19],record[20])
-			//ErrorCheck(err,"No Problem with Data Insertion")
 			success++
 		}else {
 			i++
 		}
 	}
 	if success>0 {
-		fmt.Printf("Success! Data Inserted Into '%s' Table",tablename)
+		fmt.Printf("Success! Data Inserted Into '%s' Table \n",tablename)
 		defer db.Close()
+		ReadInsertedRecords()
+
 	}else {
-		fmt.Println("Oops!Something Wierd Happened")
+		fmt.Println("Oops!Something Weird Happened")
 		defer db.Close()
 	}
-
-
 }
 
 func createAndOpenDB() *sql.DB {
 
 	db, err := sql.Open("mysql", username+":"+password+"@tcp("+hostname+")/")
 	ErrorCheck(err,"DB Server Connection Successful")
-
 	PingDB(db)
 
 	_,err = db.Exec("CREATE DATABASE IF NOT EXISTS "+dbname)
@@ -88,13 +85,41 @@ func createAndOpenDB() *sql.DB {
 		" phone TEXT , email TEXT , street TEXT , state TEXT , city TEXT ," +
 		" zip INT , graduated_from TEXT , employment_status BOOL , company TEXT ," +
 		" designation TEXT , yearly_revenue TEXT)")
-	ErrorCheck(err,"Table Created Successfully!")
+	ErrorCheck(err,tablename+ " Created Successfully!")
 
 	_,err = db.Exec("USE "+dbname)
 	ErrorCheck(err,dbname+" Connection Established")
 	return db
 }
+func ReadInsertedRecords()  {
+	db:=createAndOpenDB()
+	rows, err := db.Query("SELECT * FROM "+tablename )
+	ErrorCheck(err,"Nothing wrong with Query")
+	defer rows.Close()
+	fmt.Println("-------------------------------------------------------------------------------------------------------")
+	for rows.Next() {
+		var id, age, zip int
+		var EmploymentStatus bool
+		var first, last, ssn, MotherTongue, race, BloodGroup, gender,
+		birthday, CcNumber, phone, email, street, state, city, GraduatedFrom,
+		company, designation, YearlyRevenue string
+		err = rows.Scan(&id, &first, &last, &ssn, &MotherTongue, &race,
+			&age, &BloodGroup, &gender, &birthday, &CcNumber, &phone, &email,
+			&street, &state, &city, &zip, &GraduatedFrom, &EmploymentStatus,
+			&company, &designation, &YearlyRevenue)
+		ErrorCheck(err,"")
 
+		fmt.Printf("id: %d First Name: %s  Last Name: %s  SSN: %s  MotherTongue: %s  Race: %s  " +
+			"Age: %d  BloodGroup: %s  Gender: %s  Birthday: %s  CcNumber: %s  Phone: %s  Email: %s  " +
+			"Street: %s  State: %s  City: %s  Zip: %d  GraduatedFrom: %s  EmploymentStatus: %t  " +
+			"Company: %s  Designation: %s  YearlyRevenue: %s \n\n",id, first, last, ssn, MotherTongue, race, age, BloodGroup, gender, birthday, CcNumber, phone, email, street, state, city, zip, GraduatedFrom, EmploymentStatus, company, designation, YearlyRevenue)
+	}
+	fmt.Println("*******************************************************************************************************")
+
+	ErrorCheck(err,"Records Ended")
+	defer db.Close()
+
+}
 
 func ErrorCheck(err error,message string) {
 	if err != nil {
@@ -103,6 +128,7 @@ func ErrorCheck(err error,message string) {
 		fmt.Println(message)
 	}
 }
+
 func PingDB(db *sql.DB) {
 	err := db.Ping()
 	ErrorCheck(err,"DB Server Ping Successful!")
