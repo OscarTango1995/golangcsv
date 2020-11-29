@@ -1,0 +1,17 @@
+version: "3"
+
+services: 
+  #Database
+  db:
+    image: mysql:5.7
+    container_name: mysqldb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password  
+      MYSQL_DATABASE: interview_task
+
+#Golang App   
+  app:
+    depends_on:
+      - db
+    build: .
