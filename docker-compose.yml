@@ -6,9 +6,11 @@ services:
     image: mysql:5.7
     container_name: mysqldb
     environment:
-      MYSQL_ROOT_PASSWORD: password  
-      MYSQL_DATABASE: interview_task
-    restart: always  
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - '3308:3306'
+    restart: always   
+    
 
 #Golang App   
   app:
